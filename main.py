@@ -1,16 +1,120 @@
 import sqlite3
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 # Connect to the SQLite database
 conn = sqlite3.connect("dataset.db")
-cursor = conn.cursor()
-
-# Fetch data
-cursor.execute("SELECT * FROM social_media_usage")
-rows = cursor.fetchall()
-
-# Print data
-for row in rows:
-    print(row)
-
-# Close connection
+query = "SELECT * FROM usage"
+df = pd.read_sql_query(query, conn)
 conn.close()
+
+# Set a consistent style for plots
+sns.set(style="whitegrid")
+
+# 1. Which app has the highest average daily usage time? (Bar Chart)
+avg_usage = df.groupby('App')['Daily_Minutes_Spent'].mean().sort_values(ascending=False)
+avg_usage.plot(kind='bar', color='skyblue', figsize=(10, 6))
+plt.title('Average Daily Usage Time by App')
+plt.xlabel('App Name')
+plt.ylabel('Average Daily Usage Time (minutes)')
+plt.xticks(rotation=45)
+plt.tight_layout()
+plt.savefig('average_daily_usage_time.png')
+plt.show()
+
+# 2. How does daily usage time vary across different social media apps? (Box Plot)
+plt.figure(figsize=(10, 6))
+sns.boxplot(data=df, x='App', y='Daily_Minutes_Spent', hue='App', dodge=False, palette='Set2')
+plt.title('Daily Usage Time Distribution by App')
+plt.xlabel('App Name')
+plt.ylabel('Daily Usage Time (minutes)')
+plt.xticks(rotation=45)
+plt.tight_layout()
+plt.savefig('daily_usage_time_distribution.png')
+plt.show()
+
+# 3. Which users spend the most time on social media? (Bar Chart)
+top_users = df.groupby('User_ID')['Daily_Minutes_Spent'].sum().sort_values(ascending=False).head(10)
+top_users.plot(kind='bar', color='orange', figsize=(10, 6))
+plt.title('Top 10 Users by Total Daily Usage Time')
+plt.xlabel('User ID')
+plt.ylabel('Total Daily Usage Time (minutes)')
+plt.tight_layout()
+plt.savefig('top_users_daily_usage.png')
+plt.show()
+
+# 4. How do posts per day vary across different apps? (Box Plot)
+plt.figure(figsize=(10, 6))
+sns.boxplot(data=df, x='App', y='Posts_Per_Day', hue='App', dodge=False, palette='coolwarm')
+plt.title('Posts Per Day Distribution by App')
+plt.xlabel('App Name')
+plt.ylabel('Posts Per Day')
+plt.xticks(rotation=45)
+plt.tight_layout()
+plt.savefig('posts_per_day_distribution.png')
+plt.show()
+
+# 5. Is there a correlation between time spent and posts per day? (Scatter Plot)
+plt.figure(figsize=(8, 6))
+sns.scatterplot(data=df, x='Daily_Minutes_Spent', y='Posts_Per_Day', hue='App', palette='Set1')
+plt.title('Correlation Between Time Spent and Posts Per Day')
+plt.xlabel('Daily Usage Time (minutes)')
+plt.ylabel('Posts Per Day')
+plt.tight_layout()
+plt.savefig('time_vs_posts_correlation.png')
+plt.show()
+
+# 6. Which app has the highest number of likes per day? (Bar Chart)
+avg_likes = df.groupby('App')['Likes_Per_Day'].mean().sort_values(ascending=False)
+avg_likes.plot(kind='bar', color='green', figsize=(10, 6))
+plt.title('Average Likes Per Day by App')
+plt.xlabel('App Name')
+plt.ylabel('Average Likes Per Day')
+plt.xticks(rotation=45)
+plt.tight_layout()
+plt.savefig('average_likes_per_day.png')
+plt.show()
+
+# 7. Which app has the highest number of follows per day? (Bar Chart)
+avg_follows = df.groupby('App')['Follows_Per_Day'].mean().sort_values(ascending=False)
+avg_follows.plot(kind='bar', color='purple', figsize=(10, 6))
+plt.title('Average Follows Per Day by App')
+plt.xlabel('App Name')
+plt.ylabel('Average Follows Per Day')
+plt.xticks(rotation=45)
+plt.tight_layout()
+plt.savefig('average_follows_per_day.png')
+plt.show()
+
+# 8. Is there a relationship between likes per day and follows per day? (Scatter Plot with Regression Line)
+plt.figure(figsize=(8, 6))
+sns.regplot(data=df, x='Likes_Per_Day', y='Follows_Per_Day', scatter_kws={'alpha':0.6}, line_kws={'color':'red'})
+plt.title('Relationship Between Likes Per Day and Follows Per Day')
+plt.xlabel('Likes Per Day')
+plt.ylabel('Follows Per Day')
+plt.tight_layout()
+plt.savefig('likes_vs_follows_relationship.png')
+plt.show()
+
+# 9. How does engagement (likes, follows, posts) differ across apps? (Grouped Bar Chart)
+engagement = df.groupby('App')[['Likes_Per_Day', 'Follows_Per_Day', 'Posts_Per_Day']].mean()
+engagement.plot(kind='bar', figsize=(12, 6))
+plt.title('Engagement Metrics by App')
+plt.xlabel('App Name')
+plt.ylabel('Average Engagement Metrics')
+plt.xticks(rotation=45)
+plt.tight_layout()
+plt.savefig('engagement_metrics_by_app.png')
+plt.show()
+
+# 10. Which app has the most active users based on posting frequency? (Bar Chart)
+active_users = df.groupby('App')['Posts_Per_Day'].sum().sort_values(ascending=False)
+active_users.plot(kind='bar', color='teal', figsize=(10, 6))
+plt.title('Most Active Users by App (Posting Frequency)')
+plt.xlabel('App Name')
+plt.ylabel('Total Posts Per Day')
+plt.xticks(rotation=45)
+plt.tight_layout()
+plt.savefig('most_active_users.png')
+plt.show()
